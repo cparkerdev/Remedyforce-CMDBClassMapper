@@ -1,0 +1,113 @@
+<apex:page controller="RSCMDB_Reporting_Controller">
+	<style type="text/css">
+        .custPopup{
+            background-color: tranparent;
+            border-width: 0px;
+            border-style: solid;
+            z-index: 9999;
+            left: 50%;
+            padding:10px;
+            position: absolute;
+            /* These are the 3 css properties you will need to change so the popup
+            displays in the center of the screen. First set the width. Then set
+            margin-left to negative half of what the width is. You can add
+            the height property for a fixed size pop up if you want.*/
+            width: 550px;
+            margin-left: -250px;
+            top:100px;
+        }
+        .popupBackground{
+            background-color:black;
+            opacity: 0.20;
+            filter: alpha(opacity = 20);
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 9998;
+        }
+		.gray {background-color : gray}
+
+</style>
+<h3><a target="viewer" href="http://www.RightStar.com"><img src="{!URLFOR($Resource.RSClassMapper_Logo)}" /></a></h3>
+<apex:pageMessages ></apex:pageMessages>
+	<apex:form >
+		<apex:pageBlock >
+			
+			
+			<apex:pageBlockButtons >
+				<apex:commandButton value="Add New" action="{!addNew}" />
+			</apex:pageBlockButtons>
+
+			<apex:pageBlockTable id="cfgTbl" value="{!Configs}" var="c">
+				
+				<apex:column headerValue="Actions" width="100">
+					<apex:commandLink value="Edit" action="{!edit}">
+						<apex:param assignTo="{!cfgId}" value="{!c.Id}" name="cfgId" />
+					</apex:commandLink>
+					<apex:outputText > | </apex:outputText>
+					<apex:commandLink value="Del" action="{!del}" rerender="cfgTbl">
+						<apex:param assignTo="{!cfgId}" value="{!c.Id}" name="cfgId" />
+					</apex:commandLink>
+					<apex:outputText > | </apex:outputText>
+					<apex:commandLink value="Exec" action="{!showExec}">
+						<apex:param assignTo="{!cfgId}" value="{!c.Id}" name="cfgId" />
+					</apex:commandLink>
+				</apex:column>
+				
+				<apex:column headerValue="CMDB Class">
+					<apex:outputField value="{!c.Class_Name__c}" />
+				</apex:column>
+				
+				<apex:column headerValue="BE Lookup Field">
+					<apex:outputField value="{!c.FK_Field__c}" />
+				</apex:column>
+				
+			</apex:pageBlockTable>		
+			
+			
+		</apex:pageBlock>
+		
+		<!-- Popup Panel Start -->
+		
+		<apex:outputPanel id="cfgPanel">
+        <apex:outputPanel styleClass="popupBackground" layout="block" rendered="{!displayPop}"/>
+            <apex:outputPanel styleClass="custPopup" layout="block" rendered="{!displayPop}">
+    			<apex:pageBlock >
+
+					<apex:commandButton value="Save" action="{!save}" rerender="cfgTbl,cfgPanel"/>
+					<apex:commandButton value="Close" action="{!hidePop}" rerender="cfgPanel"/>
+					<apex:pageBlockSection ></apex:pageBlockSection>
+					<apex:pageBlockSection collapsible="false" columns="1" title="Reporting Configuration">
+						<apex:selectList value="{!newCfg.Class_Name__c}" multiselect="false" size="1">
+							<apex:actionSupport event="onchange" rerender="fieldSelList" status="status" /> 
+							<apex:selectOptions value="{!CMDBClassSelect}" />
+						</apex:selectList>
+						<apex:selectList id="fieldSelList" value="{!newCfg.FK_Field__c}" multiselect="false" size="1">
+							<apex:selectOptions value="{!Fields}" />
+						</apex:selectList>	
+					</apex:pageBlockSection>
+					
+				</apex:pageBlock>
+            </apex:outputPanel>
+        </apex:outputPanel>
+		
+		
+		<apex:outputPanel id="execPanel">
+        <apex:outputPanel styleClass="popupBackground" layout="block" rendered="{!displayExec}"/>
+            <apex:outputPanel styleClass="custPopup" layout="block" rendered="{!displayExec}">
+    			<apex:pageBlock >
+					<apex:pageBlockSection ></apex:pageBlockSection>
+					<p>This will perform a one time batch update to merge the Base Element and Class objects. There is no need to run this again, data will sync in real-time.</p>
+					<p>Continue?</p>
+					<br/>
+					<apex:commandButton value="Yes" action="{!execBatch}" rerender="execPanel"/>
+					<apex:commandButton value="No" action="{!hideExec}" rerender="execPanel"/>
+					<p>Batch status can be found <a target="_blank" href="/apexpages/setup/listAsyncApexJobs.apexp">here</a>.</p>
+				</apex:pageBlock>
+            </apex:outputPanel>
+        </apex:outputPanel>
+		
+	</apex:form>
+</apex:page>
